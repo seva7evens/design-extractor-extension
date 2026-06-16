@@ -1,6 +1,6 @@
-# Design MD
+# Design Extractor Extension
 
-Design MD is a Chromium extension that turns the currently open website into an evidence-backed `DESIGN.md`: tokens, layout notes, component inventory, responsive evidence, screenshots, and implementation guidance for AI coding agents.
+Design Extractor is a Chromium extension that turns the currently open website into an evidence-backed `DESIGN.md`: tokens, layout notes, component inventory, responsive evidence, screenshots, and implementation guidance for AI coding agents.
 
 The project has no backend. It runs locally in the browser, uses the user's own Gemini API key, and keeps the extension permission model Web Store-safe.
 
