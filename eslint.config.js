@@ -20,7 +20,7 @@ export default tseslint.config(
     }
   },
   {
-    ignores: ['.wxt/**', '.output/**', 'output/**', 'node_modules/**', 'artifacts/**']
+    ignores: ['.wxt/**', '.output/**', 'output/**', 'extension-build/**', 'node_modules/**', 'artifacts/**']
   },
   {
     files: ['*.cjs'],
