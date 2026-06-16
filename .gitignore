@@ -1,0 +1,11 @@
+.env
+.wxt/
+.output/
+output/
+node_modules/
+artifacts/*
+!artifacts/.gitkeep
+test-results/
+playwright-report/
+coverage/
+*.log

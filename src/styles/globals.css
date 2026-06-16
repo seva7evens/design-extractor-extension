@@ -1,0 +1,309 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color: #171717;
+  background: #f7f8fa;
+  font-family:
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 420px;
+  background: #f7f8fa;
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+button {
+  border: 1px solid #cfd5de;
+  background: #ffffff;
+  color: #171717;
+  min-height: 32px;
+  border-radius: 6px;
+  padding: 0 10px;
+  cursor: pointer;
+}
+
+button:hover:not(:disabled) {
+  border-color: #9aa6b2;
+}
+
+button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+summary:focus-visible {
+  outline: none;
+  border-color: #8b929d;
+  box-shadow: 0 0 0 2px rgb(23 23 23 / 10%);
+}
+
+input,
+select {
+  width: 100%;
+  min-height: 32px;
+  border: 1px solid #cfd5de;
+  border-radius: 6px;
+  padding: 0 9px;
+  background: #ffffff;
+  color: #171717;
+}
+
+.popup-shell {
+  width: 420px;
+  padding: 14px;
+}
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+h1 {
+  margin: 0;
+  font-size: 18px;
+  line-height: 1.15;
+  font-weight: 650;
+}
+
+p {
+  margin: 4px 0 0;
+  color: #596273;
+  font-size: 12px;
+}
+
+label {
+  display: grid;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.field-group,
+.grid-two,
+.advanced,
+.progress-area,
+.output,
+.error {
+  margin-top: 12px;
+}
+
+.inline-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.inline-row input {
+  min-width: 0;
+  flex: 1;
+}
+
+.quiet {
+  background: transparent;
+}
+
+.grid-two {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.segmented {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  margin-top: 12px;
+  border: 1px solid #cfd5de;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.segmented button {
+  border: 0;
+  border-radius: 0;
+}
+
+.segmented button + button {
+  border-left: 1px solid #cfd5de;
+}
+
+.segmented .active {
+  background: #171717;
+  color: #ffffff;
+}
+
+.advanced {
+  border-top: 1px solid #d9dde3;
+  border-bottom: 1px solid #d9dde3;
+  padding: 8px 0;
+}
+
+.advanced summary {
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.advanced label {
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  margin-top: 8px;
+  font-weight: 500;
+}
+
+.advanced input {
+  width: auto;
+  min-height: auto;
+}
+
+.primary {
+  width: 100%;
+  min-height: 38px;
+  margin-top: 12px;
+  border-color: #171717;
+  background: #171717;
+  color: #ffffff;
+  font-weight: 650;
+}
+
+.status {
+  border: 1px solid #cfd5de;
+  border-radius: 999px;
+  padding: 3px 8px;
+  font-size: 11px;
+  text-transform: capitalize;
+  background: #ffffff;
+}
+
+.status.valid {
+  color: #166534;
+  border-color: #86efac;
+}
+
+.status.invalid,
+.status.quota {
+  color: #991b1b;
+  border-color: #fecaca;
+}
+
+.progress-area {
+  display: grid;
+  gap: 7px;
+}
+
+.progress-top {
+  display: flex;
+  justify-content: space-between;
+  color: #3f4652;
+  font-size: 12px;
+}
+
+.progress-track {
+  height: 5px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e3e7ec;
+}
+
+.progress-track div {
+  height: 100%;
+  width: 34%;
+  border-radius: inherit;
+  background: #171717;
+  transform: translateX(-100%);
+}
+
+.progress-track.running div {
+  animation: slide 1.25s ease-in-out infinite;
+}
+
+@keyframes slide {
+  0% {
+    transform: translateX(-100%);
+  }
+  50% {
+    transform: translateX(100%);
+  }
+  100% {
+    transform: translateX(300%);
+  }
+}
+
+ul {
+  display: grid;
+  gap: 3px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: #596273;
+  font-size: 11px;
+}
+
+.error {
+  border-left: 3px solid #dc2626;
+  padding: 8px 10px;
+  background: #fff1f2;
+  color: #7f1d1d;
+  border-radius: 4px;
+}
+
+.error pre {
+  overflow: auto;
+  max-height: 120px;
+  white-space: pre-wrap;
+  font-size: 11px;
+}
+
+.output {
+  display: grid;
+  gap: 8px;
+  padding-top: 10px;
+  border-top: 1px solid #d9dde3;
+}
+
+.filename {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12px;
+}
+
+.secondary-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.secondary-actions button {
+  min-height: 28px;
+  color: #596273;
+}
+
+.warning {
+  color: #92400e;
+}
