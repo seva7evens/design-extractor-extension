@@ -6,6 +6,7 @@ import { extractPageEvidenceInPage } from '../src/lib/extraction/in-page';
 import { buildMultiViewportEvidence } from '../src/lib/extraction/multi-viewport';
 import type { ExtractionOptions } from '../src/lib/extraction/types';
 import { buildVisualClusters } from '../src/lib/extraction/visual-clusters';
+import { DEFAULT_GEMINI_MODEL } from '../src/lib/gemini/model-filter';
 import { generateDesignMdPipeline } from '../src/lib/gemini/pipeline';
 import { compareDesignMd, type ComparisonReport } from './compare-design-md';
 import { evaluateDesignMd } from './evaluate-design-md';
@@ -16,8 +17,8 @@ const noAi = process.argv.includes('--no-ai') || !apiKey;
 process.env.GEMINI_TIMEOUT_MS ??= '90000';
 const limitIndex = process.argv.indexOf('--limit');
 const limit = limitIndex >= 0 ? Number(process.argv[limitIndex + 1]) : referenceSites.length;
-const visionModel = process.env.GEMINI_VISION_MODEL || 'gemini-3.5-flash';
-const textModel = process.env.GEMINI_TEXT_MODEL || 'gemini-3.5-flash';
+const visionModel = process.env.GEMINI_VISION_MODEL || DEFAULT_GEMINI_MODEL;
+const textModel = process.env.GEMINI_TEXT_MODEL || DEFAULT_GEMINI_MODEL;
 const browser = await chromium.launch({ headless: true });
 const summary: Array<{ slug: string; ok: boolean; report?: ComparisonReport; error?: string; aiError?: string }> = [];
 

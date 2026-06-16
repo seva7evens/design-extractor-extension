@@ -7,6 +7,7 @@ import { buildMultiViewportEvidence } from '../../src/lib/extraction/multi-viewp
 import type { ExtractionOptions } from '../../src/lib/extraction/types';
 import { buildVisualClusters } from '../../src/lib/extraction/visual-clusters';
 import { GeminiError, generateGeminiContent } from '../../src/lib/gemini/client';
+import { DEFAULT_GEMINI_MODEL } from '../../src/lib/gemini/model-filter';
 
 test('extracts CSS variables, computed styles, and visible nodes from a fixture page', async ({ page }) => {
   await page.setContent(`
@@ -100,7 +101,7 @@ test('real Gemini smoke is env-gated', async ({ page }, testInfo) => {
   try {
     const text = await generateGeminiContent({
       apiKey: apiKey!,
-      model: process.env.GEMINI_TEXT_MODEL || 'gemini-3.5-flash',
+      model: process.env.GEMINI_TEXT_MODEL || DEFAULT_GEMINI_MODEL,
       parts: [{ text: 'Return exactly: ok' }],
       temperature: 0
     });

@@ -15,8 +15,8 @@ const models: GeminiModel[] = [
 
 it('filters generateContent models and skips image generation models', () => {
   expect(filterTextModels(models).map((model) => model.name)).toEqual([
-    'models/gemini-3.5-flash',
     'models/gemini-3.1-flash-lite',
+    'models/gemini-3.5-flash',
     'models/gemini-2.5-flash',
     'models/gemini-2.5-flash-lite',
     'models/gemini-3.1-pro-preview'
@@ -24,6 +24,6 @@ it('filters generateContent models and skips image generation models', () => {
   expect(filterVisionModels(models).length).toBe(5);
 });
 
-it('chooses the newest eligible flash default when present', () => {
-  expect(chooseDefaultModel(filterTextModels(models))).toBe('gemini-3.5-flash');
+it('chooses the stable flash-lite default when present', () => {
+  expect(chooseDefaultModel(filterTextModels(models))).toBe('gemini-3.1-flash-lite');
 });

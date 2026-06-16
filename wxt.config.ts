@@ -6,9 +6,21 @@ export default defineConfig({
   manifest: {
     name: 'Design MD',
     description: 'Extract the current page into DESIGN.md with a BYOK Gemini workflow.',
+    icons: {
+      16: 'icon/16.png',
+      32: 'icon/32.png',
+      48: 'icon/48.png',
+      128: 'icon/128.png'
+    },
     action: {
       default_title: 'Design MD',
-      default_popup: 'popup.html'
+      default_popup: 'popup.html',
+      default_icon: {
+        16: 'icon/16.png',
+        32: 'icon/32.png',
+        48: 'icon/48.png',
+        128: 'icon/128.png'
+      }
     },
     commands: {
       _execute_action: {

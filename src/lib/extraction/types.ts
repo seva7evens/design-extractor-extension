@@ -211,8 +211,8 @@ export type GeminiModel = z.infer<typeof GeminiModelSchema>;
 
 export const GeminiSettingsSchema = z.object({
   apiKey: z.string().optional(),
-  visionModel: z.string().default('gemini-3.5-flash'),
-  textModel: z.string().default('gemini-3.5-flash'),
+  visionModel: z.string().default('gemini-3.1-flash-lite'),
+  textModel: z.string().default('gemini-3.1-flash-lite'),
   captureMode: CaptureModeSchema.default('fullPage'),
   includeEvidenceJson: z.boolean().default(true),
   includeVisualReportJson: z.boolean().default(true),

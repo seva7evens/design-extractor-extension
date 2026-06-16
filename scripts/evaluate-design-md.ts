@@ -38,7 +38,7 @@ export function evaluateDesignMd(markdown: string, evidence: DesignEvidence): De
   const layoutCoverageScore = coverageScore(markdown, layoutTerms(evidence), 'layout regions', issues, recommendations);
   const stateCoverageScore = stateScore(markdown, evidence, issues, recommendations);
   const responsiveCoverageScore = responsiveScore(markdown, evidence, issues, recommendations);
-  const visualClusterCoverageScore = coverageScore(markdown, visualTerms(evidence), 'visual clusters', issues, recommendations);
+  const visualClusterCoverageScore = visualClusterScore(markdown, evidence, issues, recommendations);
   const overallScore = Math.round(
     base.overallScore * 0.35 +
       componentCoverageScore * 0.2 +
@@ -82,6 +82,35 @@ function visualTerms(evidence: DesignEvidence): string[] {
   )
     .filter(Boolean)
     .slice(0, 24);
+}
+
+function visualClusterScore(markdown: string, evidence: DesignEvidence, issues: string[], recommendations: string[]): number {
+  if (!isMultiViewportEvidence(evidence)) {
+    issues.push('Missing visual cluster evidence');
+    recommendations.push('Capture desktop and mobile evidence for visual cluster evaluation');
+    return 50;
+  }
+  const clusters = evidence.viewports.flatMap((viewport) => viewport.visualClusters);
+  if (!clusters.length) {
+    issues.push('Missing visual clusters');
+    recommendations.push('Attach screenshot segment clusters to DESIGN.md evidence');
+    return 50;
+  }
+  const coverage = coverageScore(markdown, visualTerms(evidence), 'visual clusters', issues, recommendations);
+  const detailed = clusters.filter(
+    (cluster) =>
+      cluster.dominantColors.length > 0 ||
+      cluster.brightness > 0 ||
+      cluster.contrast > 0 ||
+      cluster.density > 0
+  ).length;
+  const detailScore = Math.round((detailed / clusters.length) * 100);
+  const score = Math.round(coverage * 0.6 + detailScore * 0.4);
+  if (detailScore < 70) {
+    issues.push('Low visual cluster evidence detail');
+    recommendations.push('Include dominant colors, brightness, contrast, or density for screenshot clusters');
+  }
+  return score;
 }
 
 function stateScore(markdown: string, evidence: DesignEvidence, issues: string[], recommendations: string[]): number {

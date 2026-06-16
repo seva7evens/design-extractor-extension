@@ -7,6 +7,7 @@ import { extractPageEvidenceInPage } from '../src/lib/extraction/in-page';
 import { buildMultiViewportEvidence } from '../src/lib/extraction/multi-viewport';
 import type { ExtractionOptions } from '../src/lib/extraction/types';
 import { buildVisualClusters } from '../src/lib/extraction/visual-clusters';
+import { DEFAULT_GEMINI_MODEL } from '../src/lib/gemini/model-filter';
 import { generateDesignMdPipeline } from '../src/lib/gemini/pipeline';
 import { compareDesignMd } from './compare-design-md';
 import { evaluateDesignMd } from './evaluate-design-md';
@@ -80,8 +81,8 @@ await browser.close();
 await writeFile(`${outRoot}/${files.evidence}`, JSON.stringify(evidence, null, 2));
 const screenshotDataUrl = `data:image/png;base64,${modelScreenshot.toString('base64')}`;
 const apiKey = process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY;
-const visionModel = process.env.GEMINI_VISION_MODEL || 'gemini-3.5-flash';
-const textModel = process.env.GEMINI_TEXT_MODEL || 'gemini-3.5-flash';
+const visionModel = process.env.GEMINI_VISION_MODEL || DEFAULT_GEMINI_MODEL;
+const textModel = process.env.GEMINI_TEXT_MODEL || DEFAULT_GEMINI_MODEL;
 
 let markdown: string;
 let visualReport: unknown = { skipped: 'GOOGLE_API_KEY missing; local fallback used' };

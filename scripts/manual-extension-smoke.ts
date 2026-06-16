@@ -3,6 +3,7 @@ import { mkdir, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { chromium } from '@playwright/test';
 import { artifactFilenames } from '../src/lib/browser/filenames';
+import { DEFAULT_GEMINI_MODEL } from '../src/lib/gemini/model-filter';
 import { compareDesignMd } from './compare-design-md';
 
 const url = process.argv.find((arg) => /^https?:\/\//.test(arg)) ?? 'https://www.gov.uk/';
@@ -39,8 +40,8 @@ try {
       }),
     {
       apiKey,
-      visionModel: process.env.GEMINI_VISION_MODEL || 'gemini-3.5-flash',
-      textModel: process.env.GEMINI_TEXT_MODEL || 'gemini-3.5-flash',
+      visionModel: process.env.GEMINI_VISION_MODEL || DEFAULT_GEMINI_MODEL,
+      textModel: process.env.GEMINI_TEXT_MODEL || DEFAULT_GEMINI_MODEL,
       captureMode: 'fullPage',
       includeEvidenceJson: true,
       includeVisualReportJson: true,

@@ -21,9 +21,11 @@ export function filterVisionModels(models: GeminiModel[]): GeminiModel[] {
     .sort(rankModel);
 }
 
-export function chooseDefaultModel(models: GeminiModel[], fallback = 'gemini-3.5-flash'): string {
+export const DEFAULT_GEMINI_MODEL = 'gemini-3.1-flash-lite';
+
+export function chooseDefaultModel(models: GeminiModel[], fallback = DEFAULT_GEMINI_MODEL): string {
   const names = models.map(displayModelName);
-  return names.find((name) => name === fallback) ?? names.find((name) => name === 'gemini-3.1-flash-lite') ?? names[0] ?? fallback;
+  return names.find((name) => name === fallback) ?? names.find((name) => name === DEFAULT_GEMINI_MODEL) ?? names[0] ?? fallback;
 }
 
 function rankModel(a: GeminiModel, b: GeminiModel): number {
@@ -32,8 +34,8 @@ function rankModel(a: GeminiModel, b: GeminiModel): number {
 
 function scoreName(name: string): number {
   let score = 0;
+  if (name === DEFAULT_GEMINI_MODEL) score += 160;
   if (name === 'gemini-3.5-flash') score += 140;
-  if (name === 'gemini-3.1-flash-lite') score += 120;
   if (name === 'gemini-3-flash-preview') score += 95;
   if (name === 'gemini-2.5-flash') score += 80;
   if (name === 'gemini-2.5-flash-lite') score += 65;

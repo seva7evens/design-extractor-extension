@@ -34,6 +34,7 @@ it('scores responsive and component coverage in generated DESIGN.md', () => {
   const report = evaluateDesignMd(markdown, multi);
   expect(report.componentCoverageScore).toBeGreaterThan(60);
   expect(report.responsiveCoverageScore).toBeGreaterThan(60);
+  expect(report.visualClusterCoverageScore).toBeLessThan(100);
 });
 
 function viewport(label: 'desktop' | 'mobile', item: ExtractionEvidence): ViewportEvidence {

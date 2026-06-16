@@ -6,6 +6,7 @@ import { promisify } from 'node:util';
 import { chromium } from '@playwright/test';
 import { artifactFilenames } from '../src/lib/browser/filenames';
 import type { GeneratedArtifacts } from '../src/lib/extraction/types';
+import { DEFAULT_GEMINI_MODEL } from '../src/lib/gemini/model-filter';
 import type { RuntimeResponse } from '../src/lib/messaging/protocol';
 import { compareDesignMd } from './compare-design-md';
 
@@ -46,8 +47,8 @@ try {
       }),
     {
       apiKey,
-      visionModel: process.env.GEMINI_VISION_MODEL || 'gemini-3.5-flash',
-      textModel: process.env.GEMINI_TEXT_MODEL || 'gemini-3.5-flash',
+      visionModel: process.env.GEMINI_VISION_MODEL || DEFAULT_GEMINI_MODEL,
+      textModel: process.env.GEMINI_TEXT_MODEL || DEFAULT_GEMINI_MODEL,
       captureMode: 'fullPage',
       includeEvidenceJson: true,
       includeVisualReportJson: true,

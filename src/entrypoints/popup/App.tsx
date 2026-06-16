@@ -1,14 +1,14 @@
 import { useEffect, useMemo, useState } from 'react';
 import { browser } from 'wxt/browser';
 import type { GeneratedArtifacts, GeminiModel, GeminiSettings, ProgressEvent } from '@/lib/extraction/types';
-import { chooseDefaultModel, displayModelName, filterTextModels, filterVisionModels } from '@/lib/gemini/model-filter';
+import { DEFAULT_GEMINI_MODEL, chooseDefaultModel, displayModelName, filterTextModels, filterVisionModels } from '@/lib/gemini/model-filter';
 import type { RuntimeRequest, RuntimeResponse } from '@/lib/messaging/protocol';
 
 type KeyStatus = 'unknown' | 'valid' | 'invalid' | 'quota';
 
 const DEFAULT_SETTINGS: GeminiSettings = {
-  visionModel: 'gemini-3.5-flash',
-  textModel: 'gemini-3.5-flash',
+  visionModel: DEFAULT_GEMINI_MODEL,
+  textModel: DEFAULT_GEMINI_MODEL,
   captureMode: 'fullPage',
   includeEvidenceJson: true,
   includeVisualReportJson: true,
