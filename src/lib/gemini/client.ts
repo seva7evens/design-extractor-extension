@@ -3,7 +3,7 @@ import { stripCodeFences } from '@/lib/design-md/validate';
 
 const API_ROOT = 'https://generativelanguage.googleapis.com/v1beta';
 
-export type GeminiErrorCode = 'invalid' | 'quota' | 'model' | 'network' | 'unknown';
+export type GeminiErrorCode = 'invalid' | 'quota' | 'model' | 'network' | 'permission' | 'location' | 'unknown';
 
 export class GeminiError extends Error {
   constructor(
@@ -21,16 +21,28 @@ export async function listGeminiModels(apiKey: string): Promise<GeminiModel[]> {
   return (data.models ?? []).map((model: unknown) => GeminiModelSchema.parse(model));
 }
 
-export async function validateGeminiKey(apiKey: string): Promise<{ status: 'valid' | 'invalid' | 'quota' | 'unknown'; models: GeminiModel[] }> {
+export type GeminiValidationStatus = 'valid' | 'invalid' | 'quota' | 'error' | 'unknown';
+
+export type GeminiValidationResult = {
+  status: GeminiValidationStatus;
+  models: GeminiModel[];
+  message?: string;
+  code?: GeminiErrorCode;
+  statusCode?: number;
+};
+
+export async function validateGeminiKey(apiKey: string): Promise<GeminiValidationResult> {
   try {
     const models = await listGeminiModels(apiKey);
     return { status: 'valid', models };
   } catch (error) {
     if (error instanceof GeminiError) {
-      if (error.code === 'invalid') return { status: 'invalid', models: [] };
-      if (error.code === 'quota') return { status: 'quota', models: [] };
+      const failure = { models: [], message: error.message, code: error.code, statusCode: error.status };
+      if (error.code === 'invalid') return { status: 'invalid', ...failure };
+      if (error.code === 'quota') return { status: 'quota', ...failure };
+      return { status: 'error', ...failure };
     }
-    return { status: 'unknown', models: [] };
+    return { status: 'unknown', models: [], message: error instanceof Error ? error.message : String(error) };
   }
 }
 
@@ -89,7 +101,11 @@ async function geminiFetch(url: string, apiKey: string, init?: RequestInit): Pro
   } catch {
     // Keep generic message; never include the API key or request URL.
   }
-  if (response.status === 400 || response.status === 401 || response.status === 403) throw new GeminiError(message, 'invalid', response.status);
+  if (/user location is not supported|location is not supported|unsupported.*location/i.test(message)) {
+    throw new GeminiError(message, 'location', response.status);
+  }
+  if (response.status === 400 || response.status === 401) throw new GeminiError(message, 'invalid', response.status);
+  if (response.status === 403) throw new GeminiError(message, 'permission', response.status);
   if (response.status === 404) throw new GeminiError(message, 'model', response.status);
   if (response.status === 429) throw new GeminiError(message, 'quota', response.status);
   if (response.status >= 500) throw new GeminiError(message, 'network', response.status);

@@ -108,7 +108,7 @@ test('real Gemini smoke is env-gated', async ({ page }, testInfo) => {
     await testInfo.attach('gemini-response', { body: text, contentType: 'text/plain' });
     expect(text.toLowerCase()).toContain('ok');
   } catch (error) {
-    if (error instanceof GeminiError && ['quota', 'network'].includes(error.code)) {
+    if (error instanceof GeminiError && ['quota', 'network', 'location', 'permission'].includes(error.code)) {
       test.skip(true, `Gemini unavailable: ${error.message.split('\n')[0]}`);
     }
     throw error;

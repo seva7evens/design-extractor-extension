@@ -242,3 +242,13 @@ export const GeneratedArtifactsSchema = z.object({
   validationIssues: z.array(z.string()).default([])
 });
 export type GeneratedArtifacts = z.infer<typeof GeneratedArtifactsSchema>;
+
+export const GenerationStateSchema = z.object({
+  status: z.enum(['idle', 'running', 'succeeded', 'failed']).default('idle'),
+  startedAt: z.string().optional(),
+  endedAt: z.string().optional(),
+  events: z.array(ProgressEventSchema).default([]),
+  artifacts: GeneratedArtifactsSchema.optional(),
+  error: z.object({ message: z.string(), details: z.string().optional(), code: z.string().optional() }).optional()
+});
+export type GenerationState = z.infer<typeof GenerationStateSchema>;

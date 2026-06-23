@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import { browser } from 'wxt/browser';
-import type { GeneratedArtifacts, GeminiModel, GeminiSettings, ProgressEvent } from '@/lib/extraction/types';
+import type { GeneratedArtifacts, GeminiModel, GeminiSettings, GenerationState, ProgressEvent } from '@/lib/extraction/types';
+import type { GeminiValidationResult } from '@/lib/gemini/client';
 import { DEFAULT_GEMINI_MODEL, chooseDefaultModel, displayModelName, filterTextModels, filterVisionModels } from '@/lib/gemini/model-filter';
 import type { RuntimeRequest, RuntimeResponse } from '@/lib/messaging/protocol';
 
-type KeyStatus = 'unknown' | 'valid' | 'invalid' | 'quota';
+type KeyStatus = 'unknown' | 'valid' | 'invalid' | 'quota' | 'error';
 
 const DEFAULT_SETTINGS: GeminiSettings = {
   visionModel: DEFAULT_GEMINI_MODEL,
@@ -39,6 +40,7 @@ export default function App() {
       setApiKeyInput(loaded.apiKey ?? '');
       setKeyStatus(loaded.apiKey && loaded.cachedModels.length ? 'valid' : 'unknown');
     });
+    send<GenerationState>({ type: 'GET_GENERATION_STATE' }).then(applyGenerationState).catch(() => undefined);
   }, []);
 
   useEffect(() => {
@@ -56,6 +58,33 @@ export default function App() {
     return () => window.clearInterval(timer);
   }, [startedAt]);
 
+  function applyGenerationState(state: GenerationState): void {
+    if (state.status === 'idle') return;
+    const started = state.startedAt ? Date.parse(state.startedAt) : null;
+    const ended = state.endedAt ? Date.parse(state.endedAt) : null;
+    setEvents(state.events);
+    if (state.status === 'running') {
+      setBusy(true);
+      setError(null);
+      setArtifacts(null);
+      setStartedAt(Number.isFinite(started) && started ? started : Date.now());
+      if (Number.isFinite(started) && started) setElapsed(Math.round((Date.now() - started) / 1000));
+      return;
+    }
+    setBusy(false);
+    setStartedAt(null);
+    if (Number.isFinite(started) && Number.isFinite(ended) && started && ended) setElapsed(Math.max(0, Math.round((ended - started) / 1000)));
+    if (state.status === 'succeeded') {
+      setError(null);
+      setArtifacts(state.artifacts ?? null);
+      return;
+    }
+    if (state.status === 'failed') {
+      setArtifacts(null);
+      setError(state.error ?? { message: 'Generation failed' });
+    }
+  }
+
   async function validateKey() {
     setBusy(true);
     setError(null);
@@ -63,7 +92,7 @@ export default function App() {
     setStartedAt(Date.now());
     setEvents([{ step: 'Validating key', message: 'Validating key', at: new Date().toISOString() }]);
     try {
-      const result = await send<{ status: KeyStatus; models: GeminiModel[] }>({ type: 'VALIDATE_GEMINI_KEY', apiKey: apiKeyInput.trim() });
+      const result = await send<GeminiValidationResult>({ type: 'VALIDATE_GEMINI_KEY', apiKey: apiKeyInput.trim() });
       setKeyStatus(result.status);
       if (result.status === 'valid') {
         const next = {
@@ -77,9 +106,13 @@ export default function App() {
         setSettings(next);
         setEvents((current) => [...current, { step: 'Key valid', message: `Loaded ${result.models.length} models`, at: new Date().toISOString() }].slice(-3));
       } else if (result.status === 'quota') {
-        setEvents((current) => [...current, { step: 'Quota limited', message: 'Gemini quota limited', at: new Date().toISOString() }].slice(-3));
+        const message = result.message ?? 'Gemini quota limited';
+        setError({ message });
+        setEvents((current) => [...current, { step: 'Quota limited', message, at: new Date().toISOString() }].slice(-3));
       } else {
-        setEvents((current) => [...current, { step: 'Invalid API key', message: 'Invalid API key', at: new Date().toISOString() }].slice(-3));
+        const message = result.message ?? (result.status === 'invalid' ? 'Invalid API key' : 'Gemini validation failed');
+        setError({ message });
+        setEvents((current) => [...current, { step: result.status === 'invalid' ? 'Invalid API key' : 'Validation error', message, at: new Date().toISOString() }].slice(-3));
       }
     } catch (err) {
       setKeyStatus('unknown');
@@ -114,6 +147,7 @@ export default function App() {
       }
       });
       setArtifacts(result);
+      setEvents((current) => [...current, { step: 'Ready', message: 'DESIGN.md downloaded', at: new Date().toISOString() }].slice(-3));
     } catch (err) {
       setError(normalizeError(err));
     } finally {

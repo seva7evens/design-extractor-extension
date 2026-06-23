@@ -10,7 +10,15 @@ import { chooseDefaultModel, filterTextModels, filterVisionModels } from '@/lib/
 import { generateDesignMdPipeline } from '@/lib/gemini/pipeline';
 import type { RuntimeRequest, RuntimeResponse } from '@/lib/messaging/protocol';
 import { captureFullPageScreenshot, captureViewportScreenshot } from '@/lib/screenshot/capture';
-import { addGenerationHistory, getSettings, saveSettings } from '@/lib/storage/settings';
+import {
+  addGenerationHistory,
+  appendGenerationEvent,
+  compactArtifacts,
+  getGenerationState,
+  getSettings,
+  saveSettings,
+  setGenerationState
+} from '@/lib/storage/settings';
 import { redactJson } from '@/lib/security/redact';
 
 export default defineBackground(() => {
@@ -26,6 +34,8 @@ async function handleMessage(request: RuntimeRequest): Promise<unknown> {
   switch (request.type) {
     case 'GET_SETTINGS':
       return getSettings();
+    case 'GET_GENERATION_STATE':
+      return getGenerationState();
     case 'SAVE_SETTINGS':
       return saveSettings(request.settings);
     case 'VALIDATE_GEMINI_KEY': {
@@ -46,7 +56,17 @@ async function handleMessage(request: RuntimeRequest): Promise<unknown> {
     case 'LIST_GEMINI_MODELS':
       return listGeminiModels(request.apiKey);
     case 'GENERATE_DESIGN_MD':
-      return generateForActiveTab(ExtractionOptionsSchema.parse(request.options));
+      return generateForActiveTab(ExtractionOptionsSchema.parse(request.options)).catch(async (error) => {
+        const currentState = await getGenerationState();
+        await setGenerationState({
+          status: 'failed',
+          startedAt: currentState.startedAt,
+          endedAt: new Date().toISOString(),
+          events: currentState.events,
+          error: { message: error instanceof Error ? error.message : String(error), details: error instanceof Error ? error.stack : undefined }
+        });
+        throw error;
+      });
     case 'DOWNLOAD_ARTIFACT':
       if (request.dataUrl) return downloadDataUrl(request.filename, request.dataUrl);
       return downloadText(request.filename, request.content ?? '', request.mimeType);
@@ -56,6 +76,11 @@ async function handleMessage(request: RuntimeRequest): Promise<unknown> {
 }
 
 async function generateForActiveTab(options: ReturnType<typeof ExtractionOptionsSchema.parse>) {
+  await setGenerationState({
+    status: 'running',
+    startedAt: new Date().toISOString(),
+    events: []
+  });
   const settings = await getSettings();
   if (!settings.apiKey) throw new Error('Add and validate a Gemini API key first');
   emitProgress('Checking page access');
@@ -107,6 +132,19 @@ async function generateForActiveTab(options: ReturnType<typeof ExtractionOptions
     url: desktop.evidence.metadata.url,
     title: desktop.evidence.metadata.title
   });
+  try {
+    await downloadText(artifacts.filename, artifacts.markdown, 'text/markdown;charset=utf-8', false);
+  } catch (error) {
+    artifacts.validationIssues.push(`Auto-download failed: ${error instanceof Error ? error.message : String(error)}`);
+  }
+  const currentState = await getGenerationState();
+  await setGenerationState({
+    status: 'succeeded',
+    startedAt: currentState.startedAt,
+    endedAt: new Date().toISOString(),
+    events: [...currentState.events, { step: 'Ready', message: 'DESIGN.md downloaded', at: new Date().toISOString() }].slice(-5),
+    artifacts: compactArtifacts(artifacts)
+  });
   emitProgress('Ready');
   return artifacts;
 }
@@ -143,8 +181,8 @@ async function captureMobileViewport(tab: chrome.tabs.Tab, options: ReturnType<t
   let original: chrome.windows.Window | undefined;
   try {
     original = await browser.windows.get(tab.windowId);
-    await browser.windows.update(tab.windowId, { state: 'normal', width: 390, height: 844, focused: true });
-    await wait(700);
+    await browser.windows.update(tab.windowId, { state: 'normal', width: 390, height: 844 });
+    await waitForWindowBounds(tab.windowId, { width: 390, height: 844 }).catch(() => wait(700));
     return await captureViewportEvidence(tab.id, 'mobile', options);
   } finally {
     if (original) {
@@ -157,7 +195,7 @@ async function captureMobileViewport(tab: chrome.tabs.Tab, options: ReturnType<t
       };
       await browser.windows.update(tab.windowId, restore).catch(() => undefined);
       if (original.state && original.state !== 'normal') await browser.windows.update(tab.windowId, { state: original.state }).catch(() => undefined);
-      await wait(300);
+      await waitForWindowBounds(tab.windowId, { width: original.width, height: original.height }).catch(() => wait(300));
     }
   }
 }
@@ -179,9 +217,22 @@ async function extractFromTab(tabId: number, options: ReturnType<typeof Extracti
 
 function emitProgress(step: string): void {
   const event: ProgressEvent = { step, message: step, at: new Date().toISOString() };
+  void appendGenerationEvent(event);
   chrome.runtime.sendMessage({ type: 'PROGRESS_EVENT', event }, () => void chrome.runtime.lastError);
 }
 
 function wait(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function waitForWindowBounds(windowId: number, expected: { width?: number; height?: number }, timeoutMs = 1800): Promise<void> {
+  const started = Date.now();
+  while (Date.now() - started < timeoutMs) {
+    const current = await browser.windows.get(windowId).catch(() => undefined);
+    const widthOk = expected.width === undefined || Math.abs((current?.width ?? 0) - expected.width) <= 8;
+    const heightOk = expected.height === undefined || Math.abs((current?.height ?? 0) - expected.height) <= 8;
+    if (widthOk && heightOk) return;
+    await wait(100);
+  }
+  throw new Error('Window bounds did not settle');
 }

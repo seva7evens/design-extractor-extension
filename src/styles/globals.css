@@ -205,7 +205,8 @@ label {
 }
 
 .status.invalid,
-.status.quota {
+.status.quota,
+.status.error {
   color: #991b1b;
   border-color: #fecaca;
 }

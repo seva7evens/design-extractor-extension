@@ -1,7 +1,8 @@
-import type { ExtractionOptions, GeneratedArtifacts, GeminiSettings, ScreenshotSegmentAnalysis } from '@/lib/extraction/types';
+import type { ExtractionOptions, GeneratedArtifacts, GeminiSettings, GenerationState, ScreenshotSegmentAnalysis } from '@/lib/extraction/types';
 
 export type RuntimeRequest =
   | { type: 'GET_SETTINGS' }
+  | { type: 'GET_GENERATION_STATE' }
   | { type: 'SAVE_SETTINGS'; settings: Partial<GeminiSettings> }
   | { type: 'VALIDATE_GEMINI_KEY'; apiKey: string }
   | { type: 'LIST_GEMINI_MODELS'; apiKey: string }
@@ -27,6 +28,7 @@ export type ScreenshotStitchResponse = {
 };
 
 export type GenerateResponse = GeneratedArtifacts;
+export type GenerationStateResponse = GenerationState;
 
 export function userMessage(error: unknown): RuntimeResponse<never> {
   const message = error instanceof Error ? error.message : String(error);
